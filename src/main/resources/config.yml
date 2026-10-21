@@ -1,0 +1,24 @@
+# Liste des mondes où le double saut est autorisé
+worlds:
+  - spawn
+worlds-mode: "whitelist"  # ou "blacklist"
+
+# Liste des zones WorldGuard autorisées (les ID de région)
+worldguard-zones:
+  - 1vs1
+worldguard-zones-mode: "blacklist"  # ou "whitelist"
+
+jump:
+  # Puissance du saut (la composante Y de la vélocité)
+  power: 0.8
+  # Délai minimum entre double sauts en millisecondes
+  delay: 500
+  sound:
+    # Nom du son (doit correspondre à une valeur de l'énumération Sound)
+    name: ENTITY_ENDER_DRAGON_FLAP
+    volume: 1.0
+    pitch: 1.0
+  particle:
+    # Nom de la particule (doit correspondre à une valeur de l'énumération Particle)
+    name: CLOUD
+    count: 10

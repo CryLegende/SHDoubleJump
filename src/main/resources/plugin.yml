@@ -1,0 +1,17 @@
+name: SHDoubleJump
+version: '${project.version}'
+main: org.Cry_Legende.sHDoubleJump.SHDoubleJump
+api-version: '1.20'
+author: Cry_Legende
+description: Double saut configurable par monde et par région WorldGuard.
+# SHTempFly et SHParkour doivent être chargés avant : leurs metadata de vol / de
+# parcours sont lues pour savoir quand le double saut doit se mettre en retrait.
+softdepend: [WorldGuard, SHTempFly, SHParkour]
+
+permissions:
+  shdoublejump.bypass:
+    description: Permet de ne pas être affecté par le double saut (bypass).
+    default: op # ou false, selon si vous voulez que les OP l'aient par défaut
+  shdoublejump.infinite:
+    description: Permet un nombre infini de sauts.
+    default: op
