@@ -31,9 +31,12 @@ Utilisé sur : **Opale · Lobby**.
 
 ## Configuration
 
-Fichiers par défaut repris du serveur (secrets remplacés par `CHANGE_ME`) :
+Fichiers par défaut repris du serveur (secrets remplacés par `CHANGE_ME`). Cliquez sur un fichier pour l'ouvrir :
 
-- `config.yml`
+<pre>
+plugins/SHDoubleJump/
+└── <a href="src/main/resources/config.yml">config.yml</a>
+</pre>
 
 ## Compilation
 
