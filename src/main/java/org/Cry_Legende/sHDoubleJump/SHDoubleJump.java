@@ -3,7 +3,9 @@ package org.Cry_Legende.sHDoubleJump;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
+import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -20,6 +22,7 @@ import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import com.sk89q.worldedit.math.BlockVector3;
@@ -243,10 +246,10 @@ public class SHDoubleJump extends JavaPlugin implements Listener {
         direction.setY(jumpPower); // Appliquer la puissance configurée
         player.setVelocity(direction);
 
-        try {
-            Sound sound = Sound.valueOf(soundName.toUpperCase());
+        Sound sound = sound(soundName);
+        if (sound != null) {
             player.getWorld().playSound(player.getLocation(), sound, soundVolume, soundPitch);
-        } catch (IllegalArgumentException e) {
+        } else {
             getLogger().warning("Le son configuré n'existe pas: " + soundName);
         }
 
@@ -267,13 +270,40 @@ public class SHDoubleJump extends JavaPlugin implements Listener {
         }
     }
 
+    /** Son lu en config : ancien nom (ENTITY_PLAYER_LEVELUP) ou clé (minecraft:entity.player.levelup). */
+    static Sound sound(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        String s = raw.trim();
+        if (s.indexOf(':') >= 0 || s.indexOf('.') >= 0) {
+            NamespacedKey key = NamespacedKey.fromString(s.toLowerCase(Locale.ROOT));
+            return key == null ? null : Registry.SOUND_EVENT.get(key);
+        }
+        try {
+            return (Sound) Sound.class.getField(s.toUpperCase(Locale.ROOT)).get(null);
+        } catch (ReflectiveOperationException | ClassCastException e) {
+            return null;
+        }
+    }
+
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        // Simple rotation de la tête : rien n'a changé pour le double saut
+        if (from.getX() == to.getX() && from.getY() == to.getY() && from.getZ() == to.getZ()) return;
+
         Player player = event.getPlayer();
 
         if (!player.isOnGround()) return;
 
-        jumpCount.put(player.getUniqueId(), 0); // Réinitialiser le compteur de sauts
+        UUID uuid = player.getUniqueId();
+        jumpCount.put(uuid, 0); // Réinitialiser le compteur de sauts (aussi pour un atterrissage dans le même bloc)
+
+        // Même bloc et double saut déjà accordé : ni permission ni région WorldGuard à réévaluer
+        if (from.getBlockX() == to.getBlockX() && from.getBlockY() == to.getBlockY() && from.getBlockZ() == to.getBlockZ()
+            && doubleJumpEnabled.getOrDefault(uuid, false)) {
+            return;
+        }
 
         if (player.hasPermission(BYPASS_PERMISSION) || !isAllowedLocation(player.getLocation())) {
             releaseFlight(player);
