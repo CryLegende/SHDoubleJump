@@ -1,3 +1,29 @@
+# ======================================================================== #
+# SHDoubleJump
+#
+# Double saut : un joueur en survie ou en aventure, dans un monde et hors des régions WorldGuard exclues, peut
+# sauter une nouvelle fois en l'air. Il se met en retrait quand SHTempFly donne le vol, pendant un parcours
+# SHParkour et en créatif ou en spectateur.
+#
+# Commandes (la console peut les utiliser) :
+#   /shdoublejump reload         Relit config.yml et messages.yml puis réévalue les joueurs connectés. En cas
+#                                d'erreur YAML, l'ancienne configuration reste en place et le fichier fautif est
+#                                indiqué.
+#   /shdoublejump info [joueur]  Explique le double saut d'un joueur : monde, régions, sauts permis, bypass, vol
+#                                géré par un autre plugin. Sans nom : soi-même (la console doit indiquer un joueur).
+#
+# Permissions :
+#   shdoublejump.admin          Toutes les sous-commandes (par défaut : op).
+#   shdoublejump.admin.reload   /shdoublejump reload (par défaut : op).
+#   shdoublejump.admin.info     /shdoublejump info (par défaut : op).
+#   shdoublejump.bypass         Pas de double saut pour ce joueur (par défaut : op).
+#   shdoublejump.infinite       Nombre de sauts illimité (par défaut : op).
+#   shdoublejump.<n>            Palier : n sauts en l'air (n entier, le plus grand compte), par exemple
+#                               shdoublejump.2. Sans palier, un seul saut en l'air.
+#
+# Les messages de la commande sont dans messages.yml.
+# ======================================================================== #
+
 # Liste des mondes où le double saut est autorisé
 worlds:
   - spawn

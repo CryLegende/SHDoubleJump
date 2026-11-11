@@ -8,10 +8,32 @@ description: Double saut configurable par monde et par région WorldGuard.
 # parcours sont lues pour savoir quand le double saut doit se mettre en retrait.
 softdepend: [WorldGuard, SHTempFly, SHParkour]
 
+commands:
+  shdoublejump:
+    description: Administration de SHDoubleJump
+    usage: /<command> <reload|info>
+
 permissions:
+  shdoublejump.admin:
+    description: Toutes les sous-commandes de /shdoublejump
+    default: op
+    children:
+      shdoublejump.admin.reload: true
+      shdoublejump.admin.info: true
+  shdoublejump.admin.reload:
+    description: Recharger la configuration (/shdoublejump reload)
+    default: op
+  shdoublejump.admin.info:
+    description: Voir pourquoi un joueur a ou n'a pas le double saut (/shdoublejump info)
+    default: op
   shdoublejump.bypass:
     description: Permet de ne pas être affecté par le double saut (bypass).
-    default: op # ou false, selon si vous voulez que les OP l'aient par défaut
+    default: op
   shdoublejump.infinite:
     description: Permet un nombre infini de sauts.
     default: op
+  # Paliers : shdoublejump.<n> (n entier) autorise n sauts en l'air, seul le plus grand compte. Les nœuds sont
+  # accordés par groupe, ils ne sont pas tous déclarés ici ; shdoublejump.2 sert d'exemple.
+  shdoublejump.2:
+    description: Palier de 2 sauts en l'air (forme générale shdoublejump.<n>)
+    default: false

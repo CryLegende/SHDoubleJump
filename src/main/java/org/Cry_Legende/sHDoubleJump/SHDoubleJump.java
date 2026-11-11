@@ -5,6 +5,9 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -20,6 +23,9 @@ import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -56,25 +62,28 @@ public class SHDoubleJump extends JavaPlugin implements Listener {
     // Pour compter le nombre de sauts effectués en l'air
     private HashMap<UUID, Integer> jumpCount = new HashMap<>();
 
-    // Configuration
-    private List<String> worldList;
-    private String worldsMode; // "whitelist" ou "blacklist"
-    private List<String> wgZoneList;
-    private String wgZonesMode; // "whitelist" ou "blacklist"
-    private double jumpPower;
-    private long jumpDelay; // en millisecondes
-    private String soundName;
-    private float soundVolume;
-    private float soundPitch;
-    private String particleName;
-    private int particleCount;
+    // Configuration (relue par /shdoublejump reload, lue par les événements des joueurs)
+    private volatile List<String> worldList;
+    private volatile String worldsMode; // "whitelist" ou "blacklist"
+    private volatile List<String> wgZoneList;
+    private volatile String wgZonesMode; // "whitelist" ou "blacklist"
+    private volatile double jumpPower;
+    private volatile long jumpDelay; // en millisecondes
+    private volatile String soundName;
+    private volatile float soundVolume;
+    private volatile float soundPitch;
+    private volatile String particleName;
+    private volatile int particleCount;
 
     private WorldGuardPlugin wgPlugin;
     private final String BYPASS_PERMISSION = "shdoublejump.bypass"; // Ajout de la constante pour la permission
+    private Messages messages;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        messages = new Messages(this);
+        messages.loadAtStartup();
         loadConfiguration();
 
         // Récupérer WorldGuard si présent
@@ -89,9 +98,11 @@ public class SHDoubleJump extends JavaPlugin implements Listener {
         }
 
         Bukkit.getPluginManager().registerEvents(this, this);
-        // Enregistrer la permission de bypass si elle n'est pas déjà enregistrée par défaut (bonne pratique)
-        if (Bukkit.getPluginManager().getPermission(BYPASS_PERMISSION) == null) {
-            Bukkit.getPluginManager().addPermission(new org.bukkit.permissions.Permission(BYPASS_PERMISSION, "Permet de ne pas être affecté par le double saut."));
+        PluginCommand command = getCommand("shdoublejump");
+        if (command != null) {
+            AdminCommand admin = new AdminCommand(this);
+            command.setExecutor(admin);
+            command.setTabCompleter(admin);
         }
     }
 
@@ -117,6 +128,108 @@ public class SHDoubleJump extends JavaPlugin implements Listener {
         soundPitch = (float) config.getDouble("jump.sound.pitch", 1.0);
         particleName = config.getString("jump.particle.name", "CLOUD");
         particleCount = config.getInt("jump.particle.count", 10);
+    }
+
+    Messages messages() {
+        return messages;
+    }
+
+    /**
+     * Relit config.yml et messages.yml. Renvoie null si tout est lu, sinon « fichier : erreur » : l'ancienne
+     * configuration reste alors en mémoire. Les joueurs connectés sont réévalués avec les nouveaux mondes et zones.
+     */
+    String reloadAll() {
+        File config = new File(getDataFolder(), "config.yml");
+        if (!config.exists()) {
+            saveDefaultConfig();
+        }
+        try {
+            Messages.loadStrict(config);
+        } catch (IOException | InvalidConfigurationException e) {
+            return "config.yml : " + Messages.describe(e);
+        }
+        YamlConfiguration loadedMessages;
+        try {
+            loadedMessages = messages.read();
+        } catch (IOException | InvalidConfigurationException e) {
+            return Messages.FILE + " : " + Messages.describe(e);
+        }
+        reloadConfig();
+        messages.apply(loadedMessages);
+        loadConfiguration();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            reevaluate(player);
+        }
+        return null;
+    }
+
+    /**
+     * Rend ou pose le vol d'un joueur connecté d'après les réglages courants. Le vol n'est posé qu'au sol, comme le
+     * fait le déplacement ; l'atterrissage suivant s'en charge sinon.
+     */
+    private void reevaluate(Player player) {
+        if (player.hasPermission(BYPASS_PERMISSION) || !isAllowedLocation(player.getLocation())) {
+            releaseFlight(player);
+        } else if (player.isOnGround()) {
+            grantFlight(player);
+        }
+    }
+
+    /**
+     * Lignes de /shdoublejump info : ce qui décide du double saut d'un joueur.
+     */
+    List<String> infoLines(Player target) {
+        List<String> lines = new ArrayList<>();
+        lines.add(messages.get("info-titre", "{joueur}", target.getName()));
+        Location location = target.getLocation();
+        String worldName = location.getWorld().getName();
+        lines.add(messages.get("info-monde", "{monde}", worldName,
+            "{etat}", messages.get(isAllowedWorld(worldName) ? "etat-autorise" : "etat-refuse")));
+        ApplicableRegionSet regions = regionsAt(location);
+        if (regions == null) {
+            lines.add(messages.get("info-regions-non-verifiees"));
+        } else {
+            List<String> ids = new ArrayList<>();
+            for (ProtectedRegion region : regions) {
+                ids.add(region.getId());
+            }
+            lines.add(messages.get("info-regions", "{regions}", ids.isEmpty() ? messages.get("aucune") : String.join(", ", ids),
+                "{etat}", messages.get(isAllowedZone(regions) ? "etat-autorise" : "etat-refuse")));
+        }
+        lines.add(messages.get("info-sauts", "{sauts}",
+            target.hasPermission("shdoublejump.infinite") ? messages.get("illimite") : String.valueOf(getAllowedJumps(target))));
+        lines.add(messages.get("info-bypass", "{etat}", messages.get(target.hasPermission(BYPASS_PERMISSION) ? "oui" : "non")));
+        String cause = null;
+        if (jumpBlocked(target)) {
+            cause = messages.get("cause-parcours");
+        } else if (target.getGameMode() == GameMode.CREATIVE) {
+            cause = messages.get("cause-creatif");
+        } else if (target.getGameMode() == GameMode.SPECTATOR) {
+            cause = messages.get("cause-spectateur");
+        } else if (target.hasMetadata(TEMPFLY_METADATA)) {
+            cause = messages.get("cause-tempfly");
+        }
+        lines.add(cause == null ? messages.get("info-vol-libre") : messages.get("info-vol-ailleurs", "{cause}", cause));
+        lines.add(messages.get("info-arme", "{etat}", messages.get(doubleJumpEnabled.getOrDefault(target.getUniqueId(), false) ? "oui" : "non")));
+        return lines;
+    }
+
+    /**
+     * Régions WorldGuard à une position, ou null si WorldGuard est absent, si aucune zone n'est configurée ou si le monde n'a pas de gestionnaire.
+     */
+    private ApplicableRegionSet regionsAt(Location location) {
+        if (wgPlugin == null || wgZoneList.isEmpty()) {
+            return null;
+        }
+        com.sk89q.worldedit.world.World wgWorld = BukkitAdapter.adapt(location.getWorld());
+        if (wgWorld == null) {
+            return null;
+        }
+        RegionManager regionManager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(wgWorld);
+        if (regionManager == null) {
+            return null;
+        }
+        return regionManager.getApplicableRegions(BlockVector3.at(location.getX(), location.getY(), location.getZ()));
     }
 
     /**

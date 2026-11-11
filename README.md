@@ -22,20 +22,34 @@ Utilisé sur : **Opale · Lobby**.
 
 - Optionnelles : `WorldGuard`, `SHTempFly`, `SHParkour`
 
+## Commandes
+
+| Commande | Alias | Description | Permission |
+|---|---|---|---|
+| `/shdoublejump reload` | — | Relit `config.yml` et `messages.yml` et réévalue les joueurs connectés. En cas d'erreur YAML, l'ancienne configuration reste en place et le fichier fautif est indiqué. | `shdoublejump.admin.reload` |
+| `/shdoublejump info [joueur]` | — | Explique le double saut d'un joueur : monde, régions WorldGuard, sauts permis, bypass, vol géré par un autre plugin. | `shdoublejump.admin.info` |
+
+La console peut utiliser les deux ; `info` demande alors un joueur.
+
 ## Permissions
 
 | Permission | Description | Par défaut |
 |---|---|---|
+| `shdoublejump.admin` | Toutes les sous-commandes de `/shdoublejump`. | `op` |
+| `shdoublejump.admin.reload` | `/shdoublejump reload`. | `op` |
+| `shdoublejump.admin.info` | `/shdoublejump info`. | `op` |
 | `shdoublejump.bypass` | Permet de ne pas être affecté par le double saut (bypass). | `op` |
 | `shdoublejump.infinite` | Permet un nombre infini de sauts. | `op` |
+| `shdoublejump.<n>` | Palier : `n` sauts en l'air (entier, le plus grand compte). Exemple : `shdoublejump.2`. Sans palier, un seul saut en l'air. | personne |
 
 ## Configuration
 
-Fichiers par défaut repris du serveur (secrets remplacés par `CHANGE_ME`). Cliquez sur un fichier pour l'ouvrir :
+Fichiers par défaut repris du serveur ; `messages.yml` est créé au premier démarrage s'il manque. Cliquez sur un fichier pour l'ouvrir :
 
 <pre>
 plugins/SHDoubleJump/
-└── <a href="src/main/resources/config.yml">config.yml</a>
+├── <a href="src/main/resources/config.yml">config.yml</a>
+└── <a href="src/main/resources/messages.yml">messages.yml</a>
 </pre>
 
 ## Compilation

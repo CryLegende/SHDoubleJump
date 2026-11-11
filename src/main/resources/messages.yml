@@ -1,0 +1,31 @@
+# Messages de SHDoubleJump (commande d'administration). Couleurs avec &.
+# Variables : {sous-commandes} (usage-liste), {fichier} et {erreur} (reload-erreur), {joueur}, {monde}, {regions},
+# {sauts}, {cause}, {etat} (info).
+
+usage-liste: "&7&l« &c&lSH &8&l» &cUsage&7 : &c/shdoublejump &7<{sous-commandes}>"
+pas-de-permission: "&7&l« &c&lSH &8&l» &cTu n'as pas la permission&7 d'utiliser cette commande."
+reload-ok: "&7&l« &a&lSH &8&l» &7Configuration &arechargée&7."
+reload-erreur: "&7&l« &c&lSH &8&l» &cRechargement refusé&7 : &c{fichier}&7 est invalide, l'ancienne configuration reste en place. &c{erreur}"
+joueur-introuvable: "&7&l« &c&lSH &8&l» &cJoueur introuvable&7 : &c{joueur}&7 n'est pas connecté."
+console-joueur: "&7&l« &c&lSH &8&l» &cLa console doit indiquer un joueur&7 : &c/shdoublejump info <joueur>"
+
+# /shdoublejump info
+info-titre: "&7&l« &e&lSH &8&l» &7Double saut de &e{joueur}"
+info-monde: "&7• Monde &e{monde}&7 : {etat}"
+info-regions: "&7• Régions WorldGuard (&e{regions}&7) : {etat}"
+info-regions-non-verifiees: "&7• Régions WorldGuard : &enon vérifiées &7(WorldGuard absent ou aucune zone configurée)"
+info-sauts: "&7• Sauts en l'air autorisés : &e{sauts}"
+info-bypass: "&7• Bypass (double saut désactivé pour lui) : {etat}"
+info-vol-ailleurs: "&7• Vol géré ailleurs : &e{cause}"
+info-vol-libre: "&7• Vol géré ailleurs : &anon"
+info-arme: "&7• Double saut armé en ce moment : {etat}"
+etat-autorise: "&aautorisé"
+etat-refuse: "&crefusé"
+oui: "&aoui"
+non: "&cnon"
+illimite: "illimité"
+aucune: "aucune"
+cause-creatif: "mode créatif"
+cause-spectateur: "mode spectateur"
+cause-tempfly: "SHTempFly"
+cause-parcours: "parcours SHParkour (double saut coupé)"
