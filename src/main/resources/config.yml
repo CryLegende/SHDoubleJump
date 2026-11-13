@@ -26,12 +26,12 @@
 
 # Liste des mondes où le double saut est autorisé
 worlds:
-  - spawn
+  - world
 worlds-mode: "whitelist"  # ou "blacklist"
 
 # Liste des zones WorldGuard autorisées (les ID de région)
 worldguard-zones:
-  - 1vs1
+  - spawn
 worldguard-zones-mode: "blacklist"  # ou "whitelist"
 
 jump:
