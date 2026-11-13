@@ -44,7 +44,7 @@ La console peut utiliser les deux ; `info` demande alors un joueur.
 
 ## Configuration
 
-Fichiers par défaut repris du serveur ; `messages.yml` est créé au premier démarrage s'il manque. Cliquez sur un fichier pour l'ouvrir :
+Fichiers par défaut, avec des valeurs d'exemple ; `messages.yml` est créé au premier démarrage s'il manque. Cliquez sur un fichier pour l'ouvrir :
 
 <pre>
 plugins/SHDoubleJump/
